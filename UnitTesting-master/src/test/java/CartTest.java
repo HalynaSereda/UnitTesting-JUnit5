@@ -41,6 +41,9 @@ public class CartTest {
 
     @Test
     public void testAddVirtualItemToCart() {
+        // Create a Cart
+        Cart cart = new Cart("TestCart");
+
         // Create a VirtualItem
         VirtualItem virtualItem = new VirtualItem();
         virtualItem.setName("Software License");

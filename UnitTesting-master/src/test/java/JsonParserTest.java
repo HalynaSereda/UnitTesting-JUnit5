@@ -1,8 +1,14 @@
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import parser.JsonParser;
 import shop.Cart;
 import static org.junit.jupiter.api.Assertions.*;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.NoSuchFileException;
+import java.util.stream.Stream;
 
 public class JsonParserTest {
 
@@ -37,29 +43,85 @@ public class JsonParserTest {
         File testFile = new File(testFileName);
         assertTrue(testFile.exists());
 
-        // Clean up the test file after assertions
-        testFile.delete();
     }
 
-    @Test
-    public void testReadFromFile() {
-        // Create a Cart instance with a name
-        Cart expectedCart = new Cart(testCartName);
+    @ParameterizedTest
+    @MethodSource("exceptionTestData")
+    public void testReadFromFile(JsonParserTestData testData) {
+        // Attempt to read from the provided file
+        assertThrows(testData.getExpectedException(), () -> {
+            jsonParser.readFromFile(testData.getFile());
+        });
+    }
 
-        // Call the writeToFile method to create a test JSON file
-        jsonParser.writeToFile(expectedCart);
+    @ParameterizedTest
+    @MethodSource("exceptionTestData")
+    @Disabled // Disable this specific test
+    public void testReadFromFileDisabled(JsonParserTestData testData) {
+        // This test is disabled and won't be executed
+    }
 
-        // Call the readFromFile method to read the test JSON file
-        Cart readCart = jsonParser.readFromFile(new File(testFileName));
 
-        // Assert that the readCart is not null and contains the same data as the expectedCart
-        assertNotNull(readCart);
-        assertEquals(expectedCart.getCartName(), readCart.getCartName());
+    static Stream<JsonParserTestData> exceptionTestData() {
+        // Define test data with different datasets
+        return Stream.of(
+                new JsonParserTestData(null, NullPointerException.class),
+                new JsonParserTestData(new File("nonexistent.json"), NoSuchFileException.class),
+                new JsonParserTestData(createMalformedJsonFile(), RuntimeException.class),
+                new JsonParserTestData(createEmptyJsonFile(), RuntimeException.class),
+                new JsonParserTestData(createNonCartJsonFile(), RuntimeException.class)
+        );
+    }
 
-        // Clean up the test file after assertions
-        File testFile = new File(testFileName);
-        if (testFile.exists()) {
-            testFile.delete();
+    private static File createMalformedJsonFile() {
+        File file = new File("malformed.json");
+        try {
+            FileWriter writer = new FileWriter(file);
+            writer.write("Malformed JSON Data");
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return file;
+    }
+
+    private static File createEmptyJsonFile() {
+        File file = new File("empty.json");
+        try {
+            file.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return file;
+    }
+
+    private static File createNonCartJsonFile() {
+        File file = new File("noncart.json");
+        try {
+            FileWriter writer = new FileWriter(file);
+            writer.write("{\"name\":\"Item\",\"price\":10.0}");
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return file;
+    }
+
+    static class JsonParserTestData {
+        private final File file;
+        private final Class<? extends Throwable> expectedException;
+
+        public JsonParserTestData(File file, Class<? extends Throwable> expectedException) {
+            this.file = file;
+            this.expectedException = expectedException;
+        }
+
+        public File getFile() {
+            return file;
+        }
+
+        public Class<? extends Throwable> getExpectedException() {
+            return expectedException;
         }
     }
 }
