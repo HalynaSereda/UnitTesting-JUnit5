@@ -68,23 +68,31 @@ public class JsonParserTest {
                 new JsonParserTestData(null, NullPointerException.class),
                 new JsonParserTestData(new File("nonexistent.json"), NoSuchFileException.class),
                 new JsonParserTestData(createMalformedJsonFile(), RuntimeException.class),
-                new JsonParserTestData(createEmptyJsonFile(), RuntimeException.class),
-                new JsonParserTestData(createNonCartJsonFile(), RuntimeException.class)
+                new JsonParserTestData(createEmptyJsonFile(), IllegalArgumentException.class),
+                new JsonParserTestData(createNonCartJsonFile(), IllegalArgumentException.class)
         );
     }
 
     private static File createMalformedJsonFile() {
         File file = new File("malformed.json");
+        FileWriter writer = null;
         try {
-            FileWriter writer = new FileWriter(file);
+            writer = new FileWriter(file);
             writer.write("Malformed JSON Data");
-            writer.close();
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            closeFileWriterSoftly(writer);
         }
         return file;
     }
-
+    private static void closeFileWriterSoftly(FileWriter writer) {
+        try {
+            if (writer != null) writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     private static File createEmptyJsonFile() {
         File file = new File("empty.json");
         try {
