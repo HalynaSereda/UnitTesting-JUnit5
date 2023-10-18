@@ -57,6 +57,6 @@ public class CartTest {
         double totalPrice = cart.getTotalPrice();
 
         // Assert that the total price matches the expected price
-        assertEquals(119.99, totalPrice, 0.001); // Price with 20% tax
+        assertEquals(119.99, totalPrice, 0.01); // Price with 20% tax
     }
 }

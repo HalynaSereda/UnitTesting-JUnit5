@@ -66,7 +66,7 @@ public class JsonParserTest {
         // Define test data with different datasets
         return Stream.of(
                 new JsonParserTestData(null, NullPointerException.class),
-                new JsonParserTestData(new File("nonexistent.json"), NoSuchFileException.class),
+                new JsonParserTestData(new File("nonexistent.json"), parser.NoSuchFileException.class),
                 new JsonParserTestData(createMalformedJsonFile(), RuntimeException.class),
                 new JsonParserTestData(createEmptyJsonFile(), IllegalArgumentException.class),
                 new JsonParserTestData(createNonCartJsonFile(), IllegalArgumentException.class)
